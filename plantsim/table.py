@@ -6,11 +6,8 @@ file LICENSE or https://opensource.org/licenses/MIT
 
 from texttable import Texttable
 
-from typing import List, Union, Dict
-
 
 class Table:
-
     def __init__(self, plantsim, table_name):
         """
         Table mapping for PlantSim Tables (e.g., DataTable, ExplorerTable)
@@ -20,14 +17,14 @@ class Table:
         self._rows = []
         self._rows_coldict = []
 
-        row_count = plantsim.get_value(f'{table_name}.YDim')
-        col_count = plantsim.get_value(f'{table_name}.XDim')
+        row_count = plantsim.get_value(f"{table_name}.YDim")
+        col_count = plantsim.get_value(f"{table_name}.XDim")
         if row_count > 0 and col_count > 0:
             for row_idx in range(row_count + 1):
                 row = []
                 row_coldict = {}
                 for col_idx in range(col_count + 1):
-                    cell_value = plantsim.get_value(f'{table_name}[{col_idx}, {row_idx}]')
+                    cell_value = plantsim.get_value(f"{table_name}[{col_idx}, {row_idx}]")
                     row.append(cell_value)
                     if row_idx > 0:
                         col_header = self.rows[0][col_idx]
@@ -37,7 +34,7 @@ class Table:
                     self._rows_coldict.append(row_coldict)
 
     @property
-    def rows(self) -> List[List]:
+    def rows(self) -> list[list]:
         """
         Returns table data row-first indexed
         :return: 2-dim list containing table data row-first indexed
@@ -45,7 +42,7 @@ class Table:
         return self._rows
 
     @property
-    def header(self) -> List:
+    def header(self) -> list:
         """
         Returns header (first table row)
         :return: list containing header elements
@@ -53,7 +50,7 @@ class Table:
         return self.rows[0]
 
     @property
-    def rows_body(self) -> List[List]:
+    def rows_body(self) -> list[list]:
         """
         Returns table data row-first indexed without header
         :return: 2-dim list containing table data row-first indexed without first row
@@ -61,7 +58,7 @@ class Table:
         return self.rows[1:]
 
     @property
-    def rows_coldict(self) -> List[Dict]:
+    def rows_coldict(self) -> list[dict]:
         """
         Returns table data row-first indexed. Each column is a Dict with header as key
         :return: list of dictionaries
@@ -77,22 +74,22 @@ class Table:
         return len(self.rows)
 
     @property
-    def columns(self) -> List[List]:
+    def columns(self) -> list[list]:
         """
         Returns table data column-first indexed.
         :return: 2-dim list containing table data column-first indexed
         """
-        return list(map(list, zip(*self.rows)))
+        return list(map(list, zip(*self.rows, strict=False)))
 
     @property
-    def columns_body(self) -> List[List]:
+    def columns_body(self) -> list[list]:
         """
         Returns table data column-first indexed without header
         :return: 2-dim list containing table data column-first indexed without header
         """
-        return list(map(list, zip(*self.rows_body)))
+        return list(map(list, zip(*self.rows_body, strict=False)))
 
-    def get_columns_by_idx(self, col_idxs: Union[int, List[int]], clip_header=False) -> Union[List, List[List]]:
+    def get_columns_by_idx(self, col_idxs: int | list[int], *, clip_header=False) -> list | list[list]:
         """
         Returns data from the table column-first indexed - filtered to certain columns
         :param col_idxs: column indexes you want to extract from table as single int or list of ints, e.g. 1 or [0, 2]
@@ -102,23 +99,20 @@ class Table:
         if not isinstance(col_idxs, list):
             col_idxs = [col_idxs]
 
-        if clip_header:
-            columns_input = self.columns_body
-        else:
-            columns_input = self.columns
+        columns_input = self.columns_body if clip_header else self.columns
 
         columns_output = []
         for col_idx in col_idxs:
             if col_idx >= len(columns_input):
-                raise IndexError('Column index ist not valid!')
+                raise IndexError("Column index ist not valid!")
             columns_output.append(columns_input[col_idx])
 
         if len(columns_output) == 1:
             return columns_output[0]
-        else:
-            return columns_output
 
-    def get_columns_by_header(self, col_headers: Union[str, List[str]], include_header=False) -> Union[List, List[List]]:
+        return columns_output
+
+    def get_columns_by_header(self, col_headers: str | list[str], *, include_header=False) -> list | list[list]:
         """
         Returns data from the table column-first indexed - filtered to certain columns
         :param col_headers: headers of columns that shall be returned (single string or list of strings)
@@ -141,8 +135,8 @@ class Table:
 
         if len(columns_output) == 1:
             return columns_output[0]
-        else:
-            return columns_output
+
+        return columns_output
 
     def __str__(self):
         """
@@ -154,5 +148,5 @@ class Table:
             texttable.add_rows(self.rows)
             texttable.set_deco(Texttable.HEADER)
             return texttable.draw()
-        else:
-            return '<empty table>'
+
+        return "<empty table>"

@@ -1,9 +1,10 @@
 import os
+
 import pandas as pd
 
-class PandasTable():
 
-    def __init__(self, plantsim, object_name, table_buffer_path=''):
+class PandasTable:
+    def __init__(self, plantsim, object_name, table_buffer_path=""):
         """
         Pandas Table mapping for PlantSim Tables (e.g., DataTable, ExplorerTable)
         - stores table in a .txt file in the python script directory
@@ -15,7 +16,7 @@ class PandasTable():
         self.plantsim = plantsim
         self._table = None
         self._table_name = object_name
-        self._table_buffer_path = os.path.join(table_buffer_path, 'table_buffer')
+        self._table_buffer_path = os.path.join(table_buffer_path, "table_buffer")
 
         self.update()
 
@@ -25,8 +26,8 @@ class PandasTable():
             os.makedirs(self._table_buffer_path)
 
         abs_table_buffer_path = os.path.abspath(self._table_buffer_path)
-        path_adjusted_table_name = self._table_name.replace('.', '_').replace(':', '_')
-        buffer_file_name = f'{path_adjusted_table_name}_buffer.txt'
+        path_adjusted_table_name = self._table_name.replace(".", "_").replace(":", "_")
+        buffer_file_name = f"{path_adjusted_table_name}_buffer.txt"
         abs_buffer_file_path = os.path.join(abs_table_buffer_path, buffer_file_name)
 
         # store table from Plant Simulation
@@ -34,7 +35,7 @@ class PandasTable():
         self.plantsim.execute_simtalk(command)
 
         # readout table from buffer
-        self._table = pd.read_csv(f'{abs_buffer_file_path}', delimiter='\t')
+        self._table = pd.read_csv(f"{abs_buffer_file_path}", delimiter="\t")
 
     @property
     def table(self):
