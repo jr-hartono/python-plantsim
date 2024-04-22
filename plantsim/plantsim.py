@@ -46,9 +46,11 @@ class PlantSim:
                 shutil.rmtree(win32com.__gen_path__)  # cleanup win32com cache
                 self.plantsim = win32.gencache.EnsureDispatch(dispatch_string)
 
-        self.plantsim.SetVisible(visible)
-        self.plantsim.SetTrustModels(trust_models)
+        self.set_visible(visible)
+        self.set_trust_models(trust_models)
+        self.set_license_type(license_type)
 
+    def set_license_type(self, license_type: LicenseType) -> None:
         self.license_type: str = license_type.value
         try:
             self.plantsim.SetLicenseType(self.license_type)
@@ -57,9 +59,6 @@ class PlantSim:
                 raise Exception(
                     f"The license type {self.license_type} does not seem to exist. Make sure it is a valid Plant Simulation license type."
                 ) from e
-
-        self.path_context: str = ""
-        self.event_controller: str = ""
 
     def load_model(self, filepath: Path | str) -> None:
         try:
@@ -71,6 +70,14 @@ class PlantSim:
                     "Make sure that the license server is up and running and you can connect to it (VPN etc.).\n"
                     f'Make sure that a valid license of type "{self.license_type}" is available in the license server.'
                 ) from e
+
+    def set_visible(self, visible: bool) -> None:
+        self.visible = visible
+        self.plantsim.SetVisible(visible)
+
+    def set_trust_models(self, trust_models: bool) -> None:
+        self.trust_models = trust_models
+        self.plantsim.SetTrustModels(trust_models)
 
     def set_path_context(self, path_context: str) -> None:
         self.path_context = path_context
@@ -84,10 +91,16 @@ class PlantSim:
             raise Exception("You need to set an event controller first!")
         self.plantsim.ResetSimulation(self.event_controller)
 
-    def start_simulation(self) -> None:
+    def start_simulation(self, *, seed: int | None = None, wait_until_finished: bool = True) -> None:
         if not self.event_controller:
             raise Exception("You need to set an event controller first!")
+        if seed is not None:
+            self.set_value(f"{self.event_controller}.RandomNumbersVariant", seed)
+
         self.plantsim.StartSimulation(self.event_controller)
+
+        while self.is_simulation_running() and wait_until_finished:
+            pass
 
     def is_simulation_running(self) -> bool:
         return self.plantsim.IsSimulationRunning()
