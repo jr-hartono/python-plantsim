@@ -81,8 +81,8 @@ class PlantSim:
         return self._model
 
     @model.setter
-    def model(self, model: Path | str) -> None:
-        self._model = Path(model).absolute()
+    def model(self, path: Path | str) -> None:
+        self._model = Path(path).absolute()
         try:
             self._plantsim.LoadModel(str(self._model))
         except BaseException as e:
@@ -151,6 +151,32 @@ class PlantSim:
     @event_controller.setter
     def event_controller(self, path: str) -> None:
         self._event_controller = path
+
+    def new_model(self) -> None:
+        self._plantsim.NewModel()
+
+    def load_model(self, path: Path | str) -> None:
+        self.model = path
+
+    def save_model(self, path: Path | str, *, create_dir_if_not_exists: bool = False) -> None:
+        if self._model is None:
+            raise Exception("No model is loaded.")
+
+        self._model = Path(path).absolute()
+
+        if not self._model.parent.exists():
+            if create_dir_if_not_exists:
+                self._model.parent.mkdir(parents=True)
+            else:
+                raise Exception(f"Directory {self._model.parent} does not exist.")
+
+        if self._model.suffix != ".spp":
+            raise Exception("Model must have a .spp extension.")
+
+        self._plantsim.SaveModel(str(self._model))
+
+    def close_model(self) -> None:
+        self._plantsim.CloseModel()
 
     def reset_simulation(self, event_controller: str | None = None) -> None:
         event_controller = event_controller if event_controller is not None else self.event_controller
