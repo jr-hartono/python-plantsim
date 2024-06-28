@@ -37,6 +37,7 @@ class PlantSim:
         version: str | None = None,
         visible: bool = True,
         trust_models: bool = False,
+        no_message_box: bool = False,
         path_context: str = ".Models.Model",
         event_controller: str = ".Models.Model.EventController",
     ) -> None:
@@ -53,6 +54,7 @@ class PlantSim:
 
         self.visible = visible
         self.trust_models = trust_models
+        self.no_message_box = no_message_box
         self._license_type = None
         if license_type is not None:
             self.license_type = license_type
@@ -123,6 +125,15 @@ class PlantSim:
     def trust_models(self, trust_models: bool) -> None:
         self._trust_models = trust_models
         self._plantsim.SetTrustModels(trust_models)
+
+    @property
+    def no_message_box(self) -> bool:
+        return self._no_message_box
+
+    @no_message_box.setter
+    def no_message_box(self, no_message_box: bool) -> None:
+        self._no_message_box = no_message_box
+        self._plantsim.SetNoMessageBox(no_message_box)
 
     @property
     def path_context(self) -> str:
@@ -212,5 +223,5 @@ class PlantSim:
 
         return self._plantsim.ExecuteSimTalk(command_string)
 
-    def quit(self) -> None:
-        self._plantsim.Quit()
+    def quit(self, seconds: int = 0) -> None:
+        self._plantsim.Quit() if seconds == 0 else self._plantsim.QuitAfterTime(seconds)
