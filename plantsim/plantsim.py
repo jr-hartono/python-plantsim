@@ -132,7 +132,7 @@ class PlantSim:
         command_string: str,
         *parameter: tuple[Any, ...],
         from_path_context: bool = True,
-    ) -> None:
+    ) -> Any:
         """
         Execute a SimTalk command according to COM documentation:
         PlantSim.ExecuteSimTalk("->real; return 3.14159")
@@ -142,12 +142,13 @@ class PlantSim:
         :param parameter: (optional); parameter, if command contains a parameter to be set
         :param from_path_context: if true, command should be formulated from the path context
         """
-        command_string = f"{self.path_context}.{command_string}" if from_path_context else f".{command_string}"
+        if from_path_context:
+            command_string = f"{self.path_context}.{command_string}"
 
         if parameter:
-            self.plantsim.ExecuteSimTalk(command_string, parameter)
-        else:
-            self.plantsim.ExecuteSimTalk(command_string)
+            return self.plantsim.ExecuteSimTalk(command_string, parameter)
+
+        return self.plantsim.ExecuteSimTalk(command_string)
 
     def quit(self) -> None:
         self.plantsim.Quit()
