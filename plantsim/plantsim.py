@@ -6,9 +6,10 @@ file LICENSE or https://opensource.org/licenses/MIT
 
 import inspect
 import shutil
+import types
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 import win32com
 import win32com.client as win32
@@ -61,6 +62,17 @@ class PlantSim:
 
         self.path_context = path_context
         self.event_controller = event_controller
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: types.TracebackType | None,
+    ) -> None:
+        self.quit()
 
     @property
     def model(self) -> Path | None:
