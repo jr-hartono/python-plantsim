@@ -52,8 +52,10 @@ class PlantSim:
 
         self.visible = visible
         self.trust_models = trust_models
+        self._license_type = None
         if license_type is not None:
             self.license_type = license_type
+        self._model = None
         if model is not None:
             self.model = model
 
@@ -61,7 +63,7 @@ class PlantSim:
         self.event_controller = event_controller
 
     @property
-    def model(self) -> Path:
+    def model(self) -> Path | None:
         return self._model
 
     @model.setter
@@ -78,7 +80,7 @@ class PlantSim:
                 ) from e
 
     @property
-    def license_type(self) -> LicenseType:
+    def license_type(self) -> LicenseType | None:
         return self._license_type
 
     @license_type.setter
