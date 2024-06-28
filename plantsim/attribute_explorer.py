@@ -17,27 +17,27 @@ class AttributeExplorerMode(Enum):
 
 
 class AttributeExplorer:
-    def __init__(self, plantsim, object_name: str) -> None:
+    def __init__(self, plantsim, name: str) -> None:
         self.plantsim = plantsim
-        self.object_name = object_name
-        self._mode: AttributeExplorerMode = AttributeExplorerMode(self.plantsim.get_value(f"{self.object_name}.Mode"))
+        self.name = name
+        self._mode = self.mode
 
     @property
     def mode(self) -> AttributeExplorerMode:
-        self._mode: AttributeExplorerMode = AttributeExplorerMode(self.plantsim.get_value(f"{self.object_name}.Mode"))
+        self._mode = AttributeExplorerMode(self.plantsim.get_value(f"{self.name}.Mode"))
         return self._mode
 
     @mode.setter
-    def set_mode(self, mode: AttributeExplorerMode) -> None:
-        self.plantsim.set_value(f"{self.object_name}.Mode", mode.value)
-        self._mode = mode
+    def mode(self, mode: AttributeExplorerMode | str) -> None:
+        self._mode = AttributeExplorerMode(mode) if isinstance(mode, str) else mode
+        self.plantsim.set_value(f"{self.name}.Mode", self._mode.value)
 
     @property
     def explorer_table(self) -> PandasTable:
-        return PandasTable(self.plantsim, f"{self.object_name}.ExplorerTable")
+        return PandasTable(self.plantsim, f"{self.name}.ExplorerTable")
 
-    def import_explorer_table(self, path: str | Path, sheet: str | None = None) -> None:
-        if self.mode != AttributeExplorerMode.EDIT:
+    def import_explorer_table(self, path: Path | str, sheet: str | None = None) -> None:
+        if self._mode != AttributeExplorerMode.EDIT:
             raise Exception("Attribute Explorer must be in edit mode.")
 
         path = Path(path).absolute()
@@ -50,10 +50,17 @@ class AttributeExplorer:
         else:
             read_function = f'readFile("{path}")'
 
-        command = f'var t: table; t.create; t.ColumnIndex := True; t.RowIndex := True; t.{read_function}; {self.object_name}.ExplorerTable := t'
+        command = f"""
+            var t: table
+            t.create
+            t.ColumnIndex := True
+            t.RowIndex := True
+            t.{read_function}
+            {self.name}.ExplorerTable := t
+        """
         self.plantsim.execute_simtalk(command, from_path_context=False)
 
-    def export_explorer_table(self, path: str | Path, sheet: str | None = None) -> None:
+    def export_explorer_table(self, path: Path | str, sheet: str | None = None) -> None:
         path = Path(path).absolute()
 
         suffix = path.suffix.lower()
@@ -64,17 +71,17 @@ class AttributeExplorer:
         else:
             write_function = f'writeFile("{path}")'
 
-        command = f'{self.object_name}.ExplorerTable.{write_function}'
+        command = f"{self.name}.ExplorerTable.{write_function}"
         self.plantsim.execute_simtalk(command, from_path_context=False)
 
     @property
     def object_table(self) -> PandasTable:
-        return PandasTable(self.plantsim, f"{self.object_name}.ObjectTable")
+        return PandasTable(self.plantsim, f"{self.name}.ObjectTable")
 
     @property
     def attribute_table(self) -> PandasTable:
-        return PandasTable(self.plantsim, f"{self.object_name}.AttributeTable")
+        return PandasTable(self.plantsim, f"{self.name}.AttributeTable")
 
     @property
     def query_table(self) -> PandasTable:
-        return PandasTable(self.plantsim, f"{self.object_name}.QueryTable")
+        return PandasTable(self.plantsim, f"{self.name}.QueryTable")

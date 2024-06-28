@@ -5,7 +5,7 @@ import pandas as pd
 
 
 class PandasTable:
-    def __init__(self, plantsim, object_name: str):
+    def __init__(self, plantsim, name: str):
         """
         Pandas Table mapping for PlantSim Tables (e.g., DataTable, ExplorerTable)
         - stores table in a .txt file in a temporary directory
@@ -14,7 +14,7 @@ class PandasTable:
         :param table_name: The object name within Plantsim relative to the current path context
         """
         self.plantsim = plantsim
-        self._table_name = object_name
+        self._name = name
 
         self.update()
 
@@ -23,8 +23,8 @@ class PandasTable:
 
     def update(self) -> pd.DataFrame:
         with tempfile.TemporaryDirectory() as temp_dir:
-            temp_file_path = Path(temp_dir) / f"{self._table_name}.txt"
-            self.plantsim.execute_simtalk(f'{self._table_name}.writeFile("{temp_file_path}")')
+            temp_file_path = Path(temp_dir) / f"{self._name}.txt"
+            self.plantsim.execute_simtalk(f'{self._name}.writeFile("{temp_file_path}")')
             self._table = pd.read_csv(temp_file_path, delimiter="\t")
         return self._table
 
