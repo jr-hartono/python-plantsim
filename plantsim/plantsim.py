@@ -35,6 +35,7 @@ class PlantSim:
         *,
         license_type: LicenseType | str | None = None,
         version: str | None = None,
+        password: str | None = None,
         visible: bool = True,
         trust_models: bool = False,
         no_message_box: bool = False,
@@ -60,7 +61,7 @@ class PlantSim:
             self.license_type = license_type
         self._model = None
         if model is not None:
-            self.model = model
+            self.load_model(model, password)
 
         self.path_context = path_context
         self.event_controller = event_controller
@@ -79,19 +80,6 @@ class PlantSim:
     @property
     def model(self) -> Path | None:
         return self._model
-
-    @model.setter
-    def model(self, path: Path | str) -> None:
-        self._model = Path(path).absolute()
-        try:
-            self._plantsim.LoadModel(str(self._model))
-        except BaseException as e:
-            if ErrorCode.extract(e.args) == -2147221503:
-                raise Exception(
-                    f'The license server or the selected license type "{self.license_type}" is not available.\n'
-                    "Make sure that the license server is up and running and you can connect to it (VPN etc.).\n"
-                    f'Make sure that a valid license of type "{self.license_type}" is available in the license server.'
-                ) from e
 
     @property
     def license_type(self) -> LicenseType | None:
@@ -155,8 +143,12 @@ class PlantSim:
     def new_model(self) -> None:
         self._plantsim.NewModel()
 
-    def load_model(self, path: Path | str) -> None:
-        self.model = path
+    def load_model(self, path: Path | str, password: str | None = None) -> None:
+        self._model = Path(path).absolute()
+        if password is not None:
+            self._plantsim.LoadModel(str(self._model), password)
+        else:
+            self._plantsim.LoadModel(str(self._model))
 
     def save_model(self, path: Path | str, *, create_dir_if_not_exists: bool = False) -> None:
         if self._model is None:
