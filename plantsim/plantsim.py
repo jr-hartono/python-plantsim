@@ -37,10 +37,12 @@ class PlantSim:
         version: str | None = None,
         password: str | None = None,
         visible: bool = True,
+        suppress_3d: bool = False,
         trust_models: bool = False,
         no_message_box: bool = False,
         path_context: str = ".Models.Model",
         event_controller: str = ".Models.Model.EventController",
+        console_log_file: Path | str | None = None,
     ) -> None:
         dispatch_string: str = "Tecnomatix.PlantSimulation.RemoteControl"
         if version:
@@ -54,8 +56,10 @@ class PlantSim:
                 self._plantsim = win32.gencache.EnsureDispatch(dispatch_string)
 
         self.visible = visible
+        self.suppress_3d(suppress_3d)
         self.trust_models = trust_models
         self.no_message_box = no_message_box
+
         self._license_type = None
         if license_type is not None:
             self.license_type = license_type
@@ -65,6 +69,8 @@ class PlantSim:
 
         self.path_context = path_context
         self.event_controller = event_controller
+        if console_log_file is not None:
+            self.console_log_file = console_log_file
 
     def __enter__(self) -> Self:
         return self
@@ -105,6 +111,9 @@ class PlantSim:
         self._visible = visible
         self._plantsim.SetVisible(visible)
 
+    def suppress_3d(self, suppress_3d: bool) -> None:
+        self._plantsim.SetSuppressStartOf3D(suppress_3d)
+
     @property
     def trust_models(self) -> bool:
         return self._trust_models
@@ -139,6 +148,19 @@ class PlantSim:
     @event_controller.setter
     def event_controller(self, path: str) -> None:
         self._event_controller = path
+
+    @property
+    def console_log_file(self) -> Path:
+        return self._console_log_file
+
+    @console_log_file.setter
+    def console_log_file(self, path: Path | str) -> None:
+        path = Path(path).absolute()
+        if not path.parent.exists():
+            path.parent.mkdir(parents=True)
+
+        self._console_log_file = path
+        self._plantsim.OpenConsoleLogFile(self._console_log_file)
 
     def new_model(self) -> None:
         self._plantsim.NewModel()
@@ -243,3 +265,6 @@ class PlantSim:
 
     def quit(self, seconds: int = 0) -> None:
         self._plantsim.Quit() if seconds == 0 else self._plantsim.QuitAfterTime(seconds)
+
+    def _get_current_process_id(self) -> int:
+        return self._plantsim.GetCurrentProcessId()
