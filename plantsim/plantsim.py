@@ -41,7 +41,7 @@ class PlantSim:
         trust_models: bool = False,
         no_message_box: bool = False,
         path_context: str = ".Models.Model",
-        event_controller: str = ".Models.Model.EventController",
+        event_controller: str | None = None,
         console_log_file: Path | str | None = None,
     ) -> None:
         dispatch_string: str = "Tecnomatix.PlantSimulation.RemoteControl"
@@ -68,7 +68,11 @@ class PlantSim:
             self.load_model(model, password)
 
         self.path_context = path_context
-        self.event_controller = event_controller
+        if event_controller is not None:
+            self.event_controller = event_controller
+        else:
+            self.event_controller = f"{self.path_context}.EventController"
+
         if console_log_file is not None:
             self.console_log_file = console_log_file
 
